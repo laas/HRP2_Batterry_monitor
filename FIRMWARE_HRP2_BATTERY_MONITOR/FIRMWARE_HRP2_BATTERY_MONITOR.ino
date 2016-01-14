@@ -18,8 +18,16 @@ float I_A = 0.0;
 float I_B = 0.0;
 float V_A = 0.0;
 float V_B = 0.0;
-float P_A = 0.0;
-float P_B = 0.0;
+
+int16_t REG_V_shunt_A = 0;
+int16_t REG_V_shunt_B = 0;
+int16_t REG_V_bus_A   = 0;
+int16_t REG_V_bus_B   = 0;
+
+
+char message[10] ={0};
+
+char c;
 void setup() 
 {
   
@@ -30,62 +38,92 @@ void setup()
   inaA.begin(INA_A);
   inaB.begin(INA_B);
   // Configure INA226
-  //inaA.configure(INA226_AVERAGES_1, INA226_BUS_CONV_TIME_1100US, INA226_SHUNT_CONV_TIME_1100US, INA226_MODE_SHUNT_BUS_CONT);
-  //inaB.configure(INA226_AVERAGES_1, INA226_BUS_CONV_TIME_1100US, INA226_SHUNT_CONV_TIME_1100US, INA226_MODE_SHUNT_BUS_CONT);
+//inaA.configure(INA226_AVERAGES_1, INA226_BUS_CONV_TIME_1100US, INA226_SHUNT_CONV_TIME_1100US, INA226_MODE_SHUNT_BUS_CONT);
+//inaB.configure(INA226_AVERAGES_1, INA226_BUS_CONV_TIME_1100US, INA226_SHUNT_CONV_TIME_1100US, INA226_MODE_SHUNT_BUS_CONT);
+//
+//inaA.configure(INA226_AVERAGES_1, INA226_BUS_CONV_TIME_140US, INA226_SHUNT_CONV_TIME_140US, INA226_MODE_SHUNT_BUS_CONT);
+//inaB.configure(INA226_AVERAGES_1, INA226_BUS_CONV_TIME_140US, INA226_SHUNT_CONV_TIME_140US, INA226_MODE_SHUNT_BUS_CONT);
+//
+inaA.configure(INA226_AVERAGES_1, INA226_BUS_CONV_TIME_332US, INA226_SHUNT_CONV_TIME_332US, INA226_MODE_SHUNT_BUS_CONT);
+inaB.configure(INA226_AVERAGES_1, INA226_BUS_CONV_TIME_332US, INA226_SHUNT_CONV_TIME_332US, INA226_MODE_SHUNT_BUS_CONT);
 
-inaA.configure(INA226_AVERAGES_1, INA226_BUS_CONV_TIME_140US, INA226_SHUNT_CONV_TIME_140US, INA226_MODE_SHUNT_BUS_CONT);
-inaB.configure(INA226_AVERAGES_1, INA226_BUS_CONV_TIME_140US, INA226_SHUNT_CONV_TIME_140US, INA226_MODE_SHUNT_BUS_CONT);
-
-  
-  // Calibrate INA226. Rshunt = 0.002 ohm, Max excepted current = 20A
-  inaA.calibrate(0.002, 20);
-  inaB.calibrate(0.002, 20);
+  // Calibrate INA226. Rshunt = 0.002 ohm, Max excepted current = 40A
+  inaA.calibrate(0.002, 40);
+  inaB.calibrate(0.002, 40);
 }
 
 void loop() 
 {
+  
   digitalWrite(PB1, HIGH); 
-  delay(1000);
+  //delay(1000);
   digitalWrite(PB1, LOW);    
-  delay(10); 
+  //delay(10); 
 
   int t=micros();
-  I_A = inaA.readShuntCurrent();
-  I_B = inaB.readShuntCurrent();
   
-  V_A = inaA.readBusVoltage();
-  V_B = inaB.readBusVoltage();
-  
-  P_A = inaA.readBusPower();
-  P_B = inaB.readBusPower();
-  Serial.println(micros()-t);
-  Serial.print("Bus voltage:   ");
-  Serial.print(V_A, 5);
-  Serial.print(" V\t");
-  Serial.print(V_B, 5);
-  Serial.println(" V");
-
-  Serial.print("Bus power:     ");
-  Serial.print(P_A, 5);
-  Serial.print(" W\t");
-  Serial.print(P_B, 5);
-  Serial.println(" W");
-
-
-//  Serial.print("Shunt voltage: ");
-//  Serial.print(inaA.readShuntVoltage(), 5);
-//  Serial.print(" V\t");
-//  Serial.print(inaB.readShuntVoltage(), 5);
-//  Serial.println(" V");
-
-  Serial.print("Shunt current: ");
-  Serial.print(I_A, 5);
-  Serial.print(" A\t");
-  Serial.print(I_B, 5);
-  Serial.println(" A");
-  Serial.println("");
-    
-
-  
-  
+  if (Serial.available() )
+  {
+    c=Serial.read();
+    switch(c)
+    {
+  //****************************************************
+      case('r'): //RAW DATA HEX
+        REG_V_shunt_A = inaA.readRegister16(INA226_REG_SHUNTVOLTAGE);
+        REG_V_shunt_B = inaB.readRegister16(INA226_REG_SHUNTVOLTAGE);
+        REG_V_bus_A   = inaA.readRegister16(INA226_REG_BUSVOLTAGE);
+        REG_V_bus_B   = inaB.readRegister16(INA226_REG_BUSVOLTAGE);
+        // message format:
+        //  |-00-|-01-|-02-|-03-|-04-|-05-|-06-|-07-|-08-|-09-|
+        //  |cpt |IA_H|IA_L|VA_H|VA_L|IB_H|IB_L|VB_H|VB_L|crc |
+        //  |8bit|16bits   |16bits   |16bits   |16bits   |8bit|
+        message[0]++;
+        message[1]= 0xff & (REG_V_shunt_A>>8);
+        message[2]= 0xff & (REG_V_shunt_A);
+        message[3]= 0xff & (REG_V_bus_A  >>8);
+        message[4]= 0xff & (REG_V_bus_A  );
+        message[5]= 0xff & (REG_V_shunt_B>>8);
+        message[6]= 0xff & (REG_V_shunt_B);
+        message[7]= 0xff & (REG_V_bus_B  >>8);
+        message[8]= 0xff & (REG_V_bus_B  );
+        message[9]= 0xaa ^ message[0] 
+                         ^ message[1] 
+                         ^ message[2] 
+                         ^ message[3] 
+                         ^ message[4] 
+                         ^ message[5] 
+                         ^ message[6] 
+                         ^ message[7] 
+                         ^ message[8] ;
+        Serial.write(message,10);
+        break;
+  //****************************************************
+      case('v'): //Verbose: Human readable data (for debug):
+        I_A = inaA.readShuntCurrent();
+        I_B = inaB.readShuntCurrent();
+        V_A = inaA.readBusVoltage();
+        V_B = inaB.readBusVoltage();
+        Serial.print("\r\n");
+        Serial.print(V_A, 5);
+        Serial.print(" V\t");
+        Serial.print(V_B, 5);
+        Serial.print(" V\t\t");
+        Serial.print(I_A, 5);
+        Serial.print(" A\t");
+        Serial.print(I_B, 5);
+        Serial.print(" A\t");
+        break;
+  //****************************************************
+      case('h'):
+        Serial.println("*********************");
+        Serial.println("Usage: ");
+        Serial.println(" 'r': send RAW data from ina226 last measurement (10 bytes respond:)");
+        Serial.println("    |-00-|-01-|-02-|-03-|-04-|-05-|-06-|-07-|-08-|-09-|");
+        Serial.println("    |cpt |IA_H|IA_L|VA_H|VA_L|IB_H|IB_L|VB_H|VB_L|crc |");
+        Serial.println("    |8bit|16bits   |16bits   |16bits   |16bits   |8bit|");
+        Serial.println(" 'h': display this menu");
+        break;
+    }
+  }
 }
+
