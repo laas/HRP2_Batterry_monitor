@@ -298,7 +298,7 @@ int16_t INA226::readRegister16(uint8_t reg)
     #endif
     HWire.endTransmission();
 
-    delayMicroseconds(10);
+    delayMicroseconds(1);
 //    delay(1);
     HWire.beginTransmission(inaAddress);
     HWire.requestFrom(inaAddress, 2);

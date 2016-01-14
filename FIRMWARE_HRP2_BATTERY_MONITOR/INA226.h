@@ -138,6 +138,8 @@ class INA226
 	float getMaxShuntVoltage(void);
 	float getMaxPower(void);
 
+
+  int16_t readRegister16(uint8_t reg);
     private:
 
 	int8_t inaAddress;
@@ -148,7 +150,7 @@ class INA226
 	uint16_t getMaskEnable(void);
 
 	void writeRegister16(uint8_t reg, uint16_t val);
-	int16_t readRegister16(uint8_t reg);
+
 };
 
 #endif
