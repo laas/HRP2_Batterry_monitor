@@ -37,7 +37,6 @@ int main(int argc, char *argv[])
   int fd,n;
   unsigned char buf[64] = {0};
   struct termios toptions;
-
   /* open serial port */
   fd = open("/dev/ttyACM0", O_RDWR | O_NOCTTY);
   printf("fd opened as %i\n", fd);
@@ -51,16 +50,16 @@ int main(int argc, char *argv[])
   tcsetattr(fd, TCSANOW, &toptions);
   while(1)
   {
+      //clear terminal
       printf("\x1b[2J");
       printf("\x1b[0;0H");
       write(fd, "r", 1);    //ASK FOR A MEASURE TO BE SEND IN RAW FORMAT
       n = read(fd, buf, 10);//READ IT
       if (n!= 10) break;
-
-    //~ #message format:
-    //~ #|-00-|-01-|-02-|-03-|-04-|-05-|-06-|-07-|-08-|-09-|
-    //~ #|cpt |IA_H|IA_L|VA_H|VA_L|IB_H|IB_L|VB_H|VB_L|crc |
-    //~ #|8bit|16bits   |16bits   |16bits   |16bits   |8bit| 
+        //~ #message format:
+        //~ #|-00-|-01-|-02-|-03-|-04-|-05-|-06-|-07-|-08-|-09-|
+        //~ #|cpt |IA_H|IA_L|VA_H|VA_L|IB_H|IB_L|VB_H|VB_L|crc |
+        //~ #|8bit|16bits   |16bits   |16bits   |16bits   |8bit| 
       double V_bus_A   = (int16_t)((buf[3]<<8)|buf[4]) * 0.00125 * 0.5;
       double V_bus_B   = (int16_t)((buf[7]<<8)|buf[8]) * 0.00125 * 0.5;
       double V_shunt_A = (int16_t)((buf[1]<<8)|buf[2]) * 0.0000025 ;
