@@ -55,22 +55,31 @@ int main(int argc, char *argv[])
       printf("\x1b[0;0H");
       write(fd, "r", 1);    //ASK FOR A MEASURE TO BE SEND IN RAW FORMAT
       n = read(fd, buf, 10);//READ IT
-      if (n!= 10) break;
+      if (n== 10) 
+      {
         //~ #message format:
         //~ #|-00-|-01-|-02-|-03-|-04-|-05-|-06-|-07-|-08-|-09-|
         //~ #|cpt |IA_H|IA_L|VA_H|VA_L|IB_H|IB_L|VB_H|VB_L|crc |
         //~ #|8bit|16bits   |16bits   |16bits   |16bits   |8bit| 
-      double V_bus_A   = (int16_t)((buf[3]<<8)|buf[4]) * 0.00125 * 0.5;
-      double V_bus_B   = (int16_t)((buf[7]<<8)|buf[8]) * 0.00125 * 0.5;
-      double V_shunt_A = (int16_t)((buf[1]<<8)|buf[2]) * 0.0000025 ;
-      double V_shunt_B = (int16_t)((buf[5]<<8)|buf[6]) * 0.0000025 ;
+      double V_bus_A   = (int16_t)((buf[3]<<8)|buf[4]) * 0.00125 * 2.0 / 0.9450400236;
+      double V_bus_B   = (int16_t)((buf[7]<<8)|buf[8]) * 0.00125 * 2.0 / 0.9408849205
+;
+      double V_shunt_A = (int16_t)((buf[1]<<8)|buf[2]) * 0.0000025 / 1.0261337886; 
+      double V_shunt_B = (int16_t)((buf[5]<<8)|buf[6]) * 0.0000025 / 1.0189463657;
+      double I_A = V_shunt_A / 0.002;
+      double I_B = V_shunt_B / 0.002;
       
-      printf("V_bus_A %lf\t",V_bus_A);
-      printf("V_shunt_A %lf\t",V_shunt_A);
-      printf("V_bus_B %lf\t",V_bus_B);
-      printf("V_shunt_B %lf\t",V_shunt_B);
-      printf("\r\n");
-      usleep(100);
+      printf(" SENSOR A\t SENSOR B\r\n");
+      printf(" %lf A\t%lf A\r\n",I_A    , I_B    );
+      printf(" %lf V\t%lf V\r\n",V_bus_A, V_bus_B);
+
+
+      usleep(100000);
+	  }
+	  else
+	  {
+		  printf("BAD RESPOND\r\n");
+	  }
   }
   return 0;
 }
