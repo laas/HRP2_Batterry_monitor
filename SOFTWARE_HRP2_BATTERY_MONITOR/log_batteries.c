@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
       printf("Error, Usage is: log_batteries \"outputfile\" time \r\n  with time in seconds\r\n");
       return -1;
   }
-  printf("Batteries states will be captured for %d seconds and written in \"%s\"\r\n",time_stop,argv[2]);
+  printf("Batteries states will be captured for %d seconds and written in \"%s\"\r\n",time_stop,argv[1]);
   //~ printf("Serial port opened as %i\n", fd);
 
   tcgetattr(fd, &toptions);
@@ -77,11 +77,11 @@ int main(int argc, char *argv[])
       //clear terminal
       //~ printf("\x1b[2J");
       //~ printf("\x1b[0;0H");
-      //write(fd, "r", 1);    //ASK FOR A MEASURE TO BE SEND IN RAW FORMAT
-      //n = read(fd, buf, 10);//READ IT
+      write(fd, "r", 1);    //ASK FOR A MEASURE TO BE SEND IN RAW FORMAT
+      n = read(fd, buf, 10);//READ IT
       gettimeofday(&tv, NULL);
       current_time = (tv.tv_sec - start_tv.tv_sec) +  (tv.tv_usec - start_tv.tv_usec) / 1000000.0;
-      if (n== 10||1) 
+      if (n==10) 
       {
         //~ #message format:
         //~ #|-00-|-01-|-02-|-03-|-04-|-05-|-06-|-07-|-08-|-09-|
