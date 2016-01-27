@@ -2,6 +2,7 @@
 #include <Wire.h>
 #include <WireBase.h>
 #include "INA226.h"
+
 //************ HRP2 Battery monitor *****************
 //LAAS CNRS - Thomas FLAYOLS - 11 jan 2016
 //measure voltage and current of each of the 2 batteries of HRP2 via INA226
@@ -54,13 +55,6 @@ inaB.configure(INA226_AVERAGES_1, INA226_BUS_CONV_TIME_332US, INA226_SHUNT_CONV_
 
 void loop() 
 {
-  
-  digitalWrite(PB1, HIGH); 
-  //delay(1000);
-  digitalWrite(PB1, LOW);    
-  //delay(10); 
-
-  int t=micros();
   while(1)
   {
     led=!led;
